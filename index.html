@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EPUB to PDF Converter</title>
+<meta name="description" content="Convert EPUB ebooks to PDF in your browser. Free, private, no signup." />
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --ink: #0b1020;
+    --ink-2: #1f2937;
+    --muted: #5b6577;
+    --muted-2: #8a93a6;
+    --line: #e5e8ef;
+    --line-2: #eef0f5;
+    --accent: #1f4dff;
+    --accent-hover: #173dd1;
+    --accent-soft: #eef2ff;
+    --success: #0e9f6e;
+    --error: #d4283a;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 1px 2px rgba(15, 23, 42, 0.04), 0 24px 48px -12px rgba(15, 23, 42, 0.12);
+    --radius: 14px;
+    --radius-lg: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss01";
+  }
+  a { color: inherit; }
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+  .hero { text-align: center; margin-bottom: 32px; }
+  .eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin: 0 0 12px;
+    font-weight: 700;
+  }
+  .lede {
+    color: var(--muted);
+    margin: 0 auto;
+    font-size: 16px;
+    max-width: 520px;
+  }
+
+  /* ── Card / drop zone ────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 24px;
+  }
+  .drop {
+    display: block;
+    position: relative;
+    border: 1.5px dashed #c8cfdd;
+    border-radius: var(--radius);
+    padding: 56px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+    background: #fcfdff;
+  }
+  .drop:hover, .drop.drag {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .drop input[type=file] { display: none; }
+  .drop-icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+  .drop-icon svg { width: 28px; height: 28px; }
+  .drop-title {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .drop-hint { color: var(--muted); font-size: 14px; }
+  .drop-hint b { color: var(--ink-2); font-weight: 600; }
+
+  /* ── Selected file row ───────────────────────────────────── */
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-top: 16px;
+    background: #fcfdff;
+  }
+  .file-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .file-icon svg { width: 18px; height: 18px; }
+  .file-meta { flex: 1; min-width: 0; }
+  .file-name {
+    font-weight: 500;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .file-size { color: var(--muted); font-size: 13px; }
+  .icon-btn {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    line-height: 0;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .icon-btn:hover { background: #f1f3f8; color: var(--error); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  /* ── Actions / progress / status ─────────────────────────── */
+  .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 18px;
+  }
+  .btn {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    padding: 12px 22px;
+    border-radius: 10px;
+    transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-primary:active:not(:disabled) { transform: translateY(1px); }
+  .btn-primary:disabled { background: #c1c7d4; color: #fff; cursor: not-allowed; box-shadow: none; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { filter: brightness(0.95); }
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .btn-secondary:hover { background: #f4f6fb; border-color: #d8dde7; }
+  .btn svg { width: 16px; height: 16px; }
+
+  .progress {
+    height: 4px;
+    width: 100%;
+    background: var(--line-2);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 16px;
+    display: none;
+  }
+  .progress.show { display: block; }
+  .progress > div {
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: slide 1.2s linear infinite;
+  }
+  @keyframes slide {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(400%); }
+  }
+
+  .status {
+    margin-top: 14px;
+    font-size: 14px;
+    min-height: 20px;
+    color: var(--muted);
+  }
+  .status.err {
+    color: var(--error);
+    white-space: pre-wrap;
+    background: #fdecee;
+    border: 1px solid #f9c8ce;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  .status.ok { color: var(--success); }
+
+  /* ── Explanation line ────────────────────────────────────── */
+  .explain {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin: 24px auto 0;
+    max-width: 560px;
+    line-height: 1.55;
+  }
+  .explain code {
+    font-size: 12.5px;
+    background: var(--line-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--ink-2);
+  }
+  .explain a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color .15s ease;
+  }
+  .explain a:hover { border-bottom-color: var(--accent); }
+
+  /* ── Footer ──────────────────────────────────────────────── */
+  footer {
+    text-align: center;
+    color: var(--muted-2);
+    font-size: 13px;
+    margin-top: 40px;
+  }
+  footer a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  footer a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+  footer .sep { margin: 0 8px; opacity: .5; }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 540px) {
+    h1 { font-size: 28px; }
+    .wrap { padding: 36px 16px 60px; }
+    .card { padding: 16px; }
+    .drop { padding: 40px 16px; }
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Convert EPUB to PDF</h1>
+    </section>
+
+    <div class="card">
+      <label class="drop" id="drop" for="file">
+        <span class="drop-icon" aria-hidden="true">
+          <!-- book icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H18a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5.5A1.5 1.5 0 0 1 4 18.5v-14Z"/>
+            <path d="M4 17.5A1.5 1.5 0 0 1 5.5 16H20"/>
+            <path d="M8 7h8M8 11h6"/>
+          </svg>
+        </span>
+        <div class="drop-title">Drop your EPUB here, or <b>click to browse</b></div>
+        <div class="drop-hint">Up to 25&nbsp;MB · <b>.epub</b> files only</div>
+        <input type="file" id="file" accept=".epub,application/epub+zip" />
+      </label>
+
+      <div id="fileRow" class="file-row" style="display:none;">
+        <span class="file-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/>
+            <path d="M14 3v5h5"/>
+          </svg>
+        </span>
+        <div class="file-meta">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size" id="fileSize"></div>
+        </div>
+        <button class="icon-btn" id="removeBtn" type="button" title="Remove file" aria-label="Remove file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="convertBtn" type="button" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>
+          </svg>
+          Convert to PDF
+        </button>
+        <a class="btn btn-success" id="downloadLink" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v12"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/>
+          </svg>
+          Download PDF
+        </a>
+        <button class="btn btn-secondary" id="resetBtn" type="button" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>
+          </svg>
+          Reset
+        </button>
+      </div>
+
+      <div class="progress" id="progress"><div></div></div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <p class="explain">
+      Your file is uploaded over HTTPS, converted with Calibre's <code>ebook-convert</code>, and deleted from the server as soon as the PDF is sent back.
+    </p>
+    <p class="explain" style="margin-top: 10px;">
+      Need an EPUB? Browse 70,000+ free public-domain books at <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a> — try <a href="https://www.gutenberg.org/ebooks/55" target="_blank" rel="noopener">The Wonderful Wizard of Oz</a>, <a href="https://www.gutenberg.org/ebooks/2701" target="_blank" rel="noopener">Moby-Dick</a>, or <a href="https://www.gutenberg.org/ebooks/1342" target="_blank" rel="noopener">Pride and Prejudice</a>.
+    </p>
+
+    <footer>
+      Powered by <a href="https://calibre-ebook.com/" target="_blank" rel="noopener">Calibre</a> <code>ebook-convert</code>
+      <span class="sep">·</span>
+      Built with <a href="https://www.anthropic.com/claude/opus" target="_blank" rel="noopener">Claude Opus 4.7</a>
+    </footer>
+  </main>
+
+<script>
+  // Resolve the convert endpoint relative to the current page so this works
+  // both when served at "/" and when proxied under "/epub-to-pdf/".
+  const CONVERT_URL = new URL("convert", window.location.href).toString();
+
+  const drop = document.getElementById("drop");
+  const fileInput = document.getElementById("file");
+  const fileRow = document.getElementById("fileRow");
+  const fileName = document.getElementById("fileName");
+  const fileSize = document.getElementById("fileSize");
+  const removeBtn = document.getElementById("removeBtn");
+  const convertBtn = document.getElementById("convertBtn");
+  const downloadLink = document.getElementById("downloadLink");
+  const resetBtn = document.getElementById("resetBtn");
+  const progress = document.getElementById("progress");
+  const statusEl = document.getElementById("status");
+
+  let currentFile = null;
+  let currentObjectURL = null;
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+  function setStatus(msg, kind) {
+    statusEl.textContent = msg || "";
+    statusEl.className = "status" + (kind ? " " + kind : "");
+  }
+
+  function clearDownload() {
+    if (currentObjectURL) {
+      URL.revokeObjectURL(currentObjectURL);
+      currentObjectURL = null;
+    }
+    downloadLink.style.display = "none";
+    downloadLink.removeAttribute("href");
+    downloadLink.removeAttribute("download");
+  }
+
+  function setFile(f) {
+    if (!f) {
+      currentFile = null;
+      fileRow.style.display = "none";
+      convertBtn.disabled = true;
+      resetBtn.style.display = "none";
+      return;
+    }
+    if (!f.name.toLowerCase().endsWith(".epub")) {
+      setStatus("Please choose an .epub file.", "err");
+      return;
+    }
+    currentFile = f;
+    fileName.textContent = f.name;
+    fileSize.textContent = fmtSize(f.size);
+    fileRow.style.display = "flex";
+    convertBtn.disabled = false;
+    resetBtn.style.display = "inline-flex";
+    setStatus("");
+    clearDownload();
+  }
+
+  function resetAll() {
+    fileInput.value = "";
+    setFile(null);
+    clearDownload();
+    setStatus("");
+    progress.classList.remove("show");
+    convertBtn.disabled = true;
+  }
+
+  fileInput.addEventListener("change", (e) => {
+    setFile(e.target.files[0] || null);
+  });
+
+  ["dragenter", "dragover"].forEach(ev => {
+    drop.addEventListener(ev, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      drop.classList.add("drag");
+    });
+  });
+  ["dragleave", "drop"].forEach(ev => {
+    drop.addEventListener(ev, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      drop.classList.remove("drag");
+    });
+  });
+  drop.addEventListener("drop", (e) => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) setFile(f);
+  });
+
+  removeBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resetAll();
+  });
+
+  resetBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    resetAll();
+  });
+
+  convertBtn.addEventListener("click", async () => {
+    if (!currentFile) return;
+    convertBtn.disabled = true;
+    clearDownload();
+    progress.classList.add("show");
+    setStatus("Converting… large books can take a minute.");
+
+    const fd = new FormData();
+    fd.append("file", currentFile);
+
+    try {
+      const res = await fetch(CONVERT_URL, { method: "POST", body: fd });
+      if (!res.ok) {
+        let detail = res.statusText;
+        try {
+          const j = await res.json();
+          detail = j.error + (j.detail ? "\n" + j.detail : "");
+        } catch { /* non-JSON error */ }
+        throw new Error(detail);
+      }
+      const blob = await res.blob();
+      currentObjectURL = URL.createObjectURL(blob);
+      const outName = currentFile.name.replace(/\.epub$/i, ".pdf");
+      downloadLink.href = currentObjectURL;
+      downloadLink.download = outName;
+      downloadLink.innerHTML = downloadLink.innerHTML.replace(/Download PDF|Download .+\.pdf/, "Download " + outName);
+      downloadLink.style.display = "inline-flex";
+      setStatus("Done — your PDF is ready.", "ok");
+    } catch (err) {
+      setStatus("Conversion failed: " + err.message, "err");
+    } finally {
+      progress.classList.remove("show");
+      convertBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
