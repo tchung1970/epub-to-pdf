@@ -55,9 +55,11 @@ def convert():
             EBOOK_CONVERT,
             str(in_path),
             str(out_path),
-            # 6"x9" trade-paperback page (Calibre takes pts: 1in = 72pt).
-            "--paper-size", "custom",
-            "--custom-size", "432x648",
+            # 6"x9" trade-paperback page. --custom-size overrides --paper-size
+            # whenever it's set to a non-default value; "custom" is NOT a valid
+            # --paper-size choice, so we leave it at the letter default.
+            "--paper-size", "letter",
+            "--custom-size", "6inx9in",
             "--pdf-page-margin-top", "54",
             "--pdf-page-margin-bottom", "54",
             "--pdf-page-margin-left", "54",

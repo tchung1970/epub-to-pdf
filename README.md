@@ -115,8 +115,17 @@ ExecStart=/usr/bin/gunicorn -b 127.0.0.1:5001 -w 2 -t 600 web:app
 
 ### Conversion options
 
-The exact `ebook-convert` flags live in `web.py` (paper size, margins,
-pretty-print). Tweak them there.
+The exact `ebook-convert` flags live in `web.py`. Defaults aim to match
+the look of a typical EPUB reader rather than an A4 document:
+
+- **6"×9" trade-paperback page** (`--custom-size 6inx9in`). Calibre
+  rejects `--paper-size custom`, so `--paper-size` is left at `letter`
+  and gets overridden by `--custom-size`.
+- **54 pt margins** all around (~0.75").
+- **Empty header template** to suppress Calibre's default top rule.
+- **Centered page number footer** via the `_PAGENUM_` placeholder.
+
+Tweak in `web.py` if you want A4, larger margins, etc.
 
 ## Layout
 
