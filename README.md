@@ -4,7 +4,12 @@ A small self-hosted web app that converts EPUB ebooks to PDF in the browser.
 Drag a file in, click **Convert to PDF**, download the result. Conversion is
 done server-side by Calibre's `ebook-convert`.
 
-Live instance: <https://ai.tchung.org/epub-to-pdf/>
+## Live Site
+
+Try it now: **<https://ai.tchung.org/epub-to-pdf/>**
+
+No signup, no tracking. Files are deleted from the server as soon as the
+PDF is sent back.
 
 ## Architecture
 
