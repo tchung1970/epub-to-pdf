@@ -132,6 +132,20 @@ the look of a typical EPUB reader rather than an A4 document:
 
 Tweak in `web.py` if you want A4, larger margins, etc.
 
+### Where to find EPUBs
+
+The page links to a few free, public-domain sources so first-time visitors
+have something to test with:
+
+- [Project Gutenberg](https://www.gutenberg.org/) — 70,000+ titles. Primary
+  link, with direct examples (*The Wonderful Wizard of Oz*, *Moby-Dick*,
+  *Pride and Prejudice*).
+- [Standard Ebooks](https://standardebooks.org/) — fallback when Gutenberg
+  is offline; same three example titles linked through.
+
+Edit the `.explain` paragraphs near the bottom of `index.html` to change
+the recommendations.
+
 ## Layout
 
 ```
