@@ -132,6 +132,22 @@ the look of a typical EPUB reader rather than an A4 document:
 
 Tweak in `web.py` if you want A4, larger margins, etc.
 
+#### "Preserve the original EPUB styling"
+
+The page has an opt-in checkbox that posts `preserve_style=1` alongside the
+file. When set, `web.py` adds:
+
+- `--pdf-use-document-margins` — honor the book's own `@page` margins, falling
+  back to the 54 pt values above when the CSS declares none
+- `--disable-font-rescaling` — keep the stylesheet's font sizes rather than
+  normalizing them to Calibre's base size
+- `--embed-all-fonts` — carry the book's embedded typefaces into the PDF
+
+and drops the `_PAGENUM_` footer, since it isn't part of the source book.
+Even so, the output is not pixel-identical to a reader: reflowable text is
+still repaginated onto fixed pages, and fixed-layout EPUBs won't reproduce
+faithfully.
+
 ### Where to find EPUBs
 
 The page links to a few free, public-domain sources so first-time visitors
@@ -157,3 +173,23 @@ the recommendations.
     ├── epub-to-pdf.service      # systemd unit
     └── nginx-location.conf      # nginx reverse-proxy block
 ```
+
+## Changelog
+
+### 2026-08-19
+
+- Added an opt-in **"Preserve the original EPUB styling"** checkbox
+  (`preserve_style=1`): honors the book's own `@page` margins, font sizes,
+  and embedded fonts, and omits the page-number footer.
+- Added a collapsible changelog to the page footer.
+- Footer credit updated to Claude Opus 5.
+
+### 2026-05-02
+
+- Initial release — drag-and-drop EPUB upload, server-side conversion via
+  Calibre `ebook-convert`, PDF streamed straight back to the browser.
+- Book-like conversion defaults: 6"×9" page, 54 pt margins, no running
+  header, centered page numbers.
+- Deployment notes for nginx + systemd on Ubuntu, with the Calibre-as-root
+  `--no-sandbox` workaround.
+- Project Gutenberg and Standard Ebooks links on the page as test sources.

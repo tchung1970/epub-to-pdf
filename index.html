@@ -159,6 +159,36 @@
   .icon-btn:hover { background: #f1f3f8; color: var(--error); }
   .icon-btn svg { width: 16px; height: 16px; }
 
+  /* ── Conversion options ──────────────────────────────────── */
+  .options {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .opt input[type=checkbox] {
+    margin: 2px 0 0;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    flex: none;
+    cursor: pointer;
+  }
+  .opt-text { font-size: 14px; color: var(--ink-2); font-weight: 600; }
+  .opt-hint {
+    display: block;
+    margin-top: 3px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
   /* ── Actions / progress / status ─────────────────────────── */
   .actions {
     display: flex;
@@ -247,7 +277,7 @@
     max-width: 560px;
     line-height: 1.55;
   }
-  .explain code {
+  .explain code, .changelog code {
     font-size: 12.5px;
     background: var(--line-2);
     padding: 1px 6px;
@@ -261,6 +291,49 @@
     transition: border-color .15s ease;
   }
   .explain a:hover { border-bottom-color: var(--accent); }
+
+  /* ── Changelog ───────────────────────────────────────────── */
+  .changelog {
+    max-width: 560px;
+    margin: 28px auto 0;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  .changelog > summary {
+    cursor: pointer;
+    text-align: center;
+    color: var(--muted-2);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    list-style: none;
+    padding: 6px 0;
+  }
+  .changelog > summary::-webkit-details-marker { display: none; }
+  .changelog > summary::after {
+    content: " ▾";
+    font-size: 11px;
+  }
+  .changelog[open] > summary::after { content: " ▴"; }
+  .changelog > summary:hover { color: var(--ink-2); }
+  .changelog-body {
+    margin-top: 8px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    text-align: left;
+  }
+  .changelog h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 14px 0 6px;
+  }
+  .changelog h3:first-child { margin-top: 0; }
+  .changelog ul { margin: 0; padding-left: 18px; }
+  .changelog li { margin: 4px 0; line-height: 1.5; }
 
   /* ── Footer ──────────────────────────────────────────────── */
   footer {
@@ -326,6 +399,16 @@
         </button>
       </div>
 
+      <div class="options">
+        <label class="opt" for="preserveStyle">
+          <input type="checkbox" id="preserveStyle" />
+          <span class="opt-text">
+            Preserve the original EPUB styling
+            <span class="opt-hint">Keeps the book's own margins, font sizes, and embedded fonts instead of the default 6&times;9&Prime; layout. Drops the page-number footer.</span>
+          </span>
+        </label>
+      </div>
+
       <div class="actions">
         <button class="btn btn-primary" id="convertBtn" type="button" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -361,10 +444,26 @@
       If Gutenberg is down, try <a href="https://standardebooks.org/" target="_blank" rel="noopener">Standard Ebooks</a> — <a href="https://standardebooks.org/ebooks/l-frank-baum/the-wonderful-wizard-of-oz" target="_blank" rel="noopener">The Wonderful Wizard of Oz</a>, <a href="https://standardebooks.org/ebooks/herman-melville/moby-dick" target="_blank" rel="noopener">Moby-Dick</a>, or <a href="https://standardebooks.org/ebooks/jane-austen/pride-and-prejudice" target="_blank" rel="noopener">Pride and Prejudice</a>.
     </p>
 
+    <details class="changelog">
+      <summary>Changelog</summary>
+      <div class="changelog-body">
+        <h3>2026-08-19</h3>
+        <ul>
+          <li>Added an opt-in <b>Preserve the original EPUB styling</b> option — keeps the book's own <code>@page</code> margins, font sizes, and embedded fonts instead of the default 6&times;9&Prime; layout, and omits the page-number footer.</li>
+        </ul>
+        <h3>2026-05-02</h3>
+        <ul>
+          <li>Initial release: drag-and-drop EPUB upload, server-side conversion with Calibre <code>ebook-convert</code>, instant PDF download.</li>
+          <li>Defaults tuned to read like a book — 6&times;9&Prime; page, 54&nbsp;pt margins, no running header, centered page numbers.</li>
+          <li>Added Project Gutenberg and Standard Ebooks links so first-time visitors have something to test with.</li>
+        </ul>
+      </div>
+    </details>
+
     <footer>
       Powered by <a href="https://calibre-ebook.com/" target="_blank" rel="noopener">Calibre</a> <code>ebook-convert</code>
       <span class="sep">·</span>
-      Built with <a href="https://www.anthropic.com/claude/opus" target="_blank" rel="noopener">Claude Opus 4.7</a>
+      Built with <a href="https://www.anthropic.com/claude/opus" target="_blank" rel="noopener">Claude Opus 5</a>
       <span class="sep">·</span>
       <a href="https://github.com/tchung1970/epub-to-pdf" target="_blank" rel="noopener">Source on GitHub</a>
     </footer>
@@ -381,6 +480,7 @@
   const fileName = document.getElementById("fileName");
   const fileSize = document.getElementById("fileSize");
   const removeBtn = document.getElementById("removeBtn");
+  const preserveStyle = document.getElementById("preserveStyle");
   const convertBtn = document.getElementById("convertBtn");
   const downloadLink = document.getElementById("downloadLink");
   const resetBtn = document.getElementById("resetBtn");
@@ -483,6 +583,7 @@
 
     const fd = new FormData();
     fd.append("file", currentFile);
+    if (preserveStyle.checked) fd.append("preserve_style", "1");
 
     try {
       const res = await fetch(CONVERT_URL, { method: "POST", body: fd });

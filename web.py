@@ -45,6 +45,12 @@ def convert():
     if not orig_name.lower().endswith(".epub"):
         return jsonify(error="Only .epub files are supported"), 400
 
+    # Opt-in: keep the EPUB's own CSS/typography as close to the source as
+    # Calibre allows, at the cost of our house page layout.
+    preserve_style = request.form.get("preserve_style", "").lower() in (
+        "1", "true", "on", "yes",
+    )
+
     job_dir = Path(tempfile.mkdtemp(prefix="epub2pdf-"))
     try:
         in_path = job_dir / f"in-{uuid.uuid4().hex}.epub"
@@ -60,16 +66,32 @@ def convert():
             # --paper-size choice, so we leave it at the letter default.
             "--paper-size", "letter",
             "--custom-size", "6inx9in",
+            # In preserve mode these act as the fallback for books whose CSS
+            # declares no @page margins of its own.
             "--pdf-page-margin-top", "54",
             "--pdf-page-margin-bottom", "54",
             "--pdf-page-margin-left", "54",
             "--pdf-page-margin-right", "54",
             # Suppress Calibre's default running header (the blue rule at top).
             "--pdf-header-template", "<div></div>",
-            "--pdf-footer-template",
-            "<div style='text-align:center; font-size:9pt; color:#666;'>_PAGENUM_</div>",
             "--pretty-print",
         ]
+
+        if preserve_style:
+            cmd += [
+                # Honor the book's own @page margins where it sets them.
+                "--pdf-use-document-margins",
+                # Keep the stylesheet's font sizes instead of normalizing them.
+                "--disable-font-rescaling",
+                # Carry the book's embedded typefaces into the PDF.
+                "--embed-all-fonts",
+            ]
+            # No page-number footer — it isn't part of the source book.
+        else:
+            cmd += [
+                "--pdf-footer-template",
+                "<div style='text-align:center; font-size:9pt; color:#666;'>_PAGENUM_</div>",
+            ]
         try:
             proc = subprocess.run(
                 cmd,
