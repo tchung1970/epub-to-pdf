@@ -277,7 +277,7 @@
     max-width: 560px;
     line-height: 1.55;
   }
-  .explain code, .changelog code {
+  .explain code {
     font-size: 12.5px;
     background: var(--line-2);
     padding: 1px 6px;
@@ -291,47 +291,6 @@
     transition: border-color .15s ease;
   }
   .explain a:hover { border-bottom-color: var(--accent); }
-
-  /* ── Changelog (footer toggle + panel) ───────────────────── */
-  .link-btn {
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 0;
-    font: inherit;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 1px solid transparent;
-    transition: color .15s ease, border-color .15s ease;
-  }
-  .link-btn:hover { color: var(--accent); border-bottom-color: var(--accent); }
-  .link-btn::after { content: " ▾"; font-size: 10px; }
-  .link-btn[aria-expanded="true"]::after { content: " ▴"; }
-
-  .changelog {
-    max-width: 560px;
-    margin: 14px auto 0;
-    font-size: 13.5px;
-    color: var(--muted);
-    text-align: left;
-  }
-  .changelog-body {
-    padding: 14px 18px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-  }
-  .changelog h3 {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--ink-2);
-    margin: 14px 0 6px;
-  }
-  .changelog h3:first-child { margin-top: 0; }
-  .changelog ul { margin: 0; padding-left: 18px; }
-  .changelog li { margin: 4px 0; line-height: 1.5; }
 
   /* ── Footer ──────────────────────────────────────────────── */
   footer {
@@ -449,22 +408,7 @@
       <span class="sep">·</span>
       <a href="https://github.com/tchung1970/epub-to-pdf" target="_blank" rel="noopener">Source on GitHub</a>
       <span class="sep">·</span>
-      <button type="button" class="link-btn" id="changelogToggle" aria-expanded="false" aria-controls="changelogPanel">Changelog</button>
-
-      <div class="changelog" id="changelogPanel" hidden>
-        <div class="changelog-body">
-          <h3>2026-08-19</h3>
-          <ul>
-            <li>Added an opt-in <b>Preserve the original EPUB styling</b> option — keeps the book's own <code>@page</code> margins, font sizes, and embedded fonts instead of the default 6&times;9&Prime; layout, and omits the page-number footer.</li>
-          </ul>
-          <h3>2026-05-02</h3>
-          <ul>
-            <li>Initial release: drag-and-drop EPUB upload, server-side conversion with Calibre <code>ebook-convert</code>, instant PDF download.</li>
-            <li>Defaults tuned to read like a book — 6&times;9&Prime; page, 54&nbsp;pt margins, no running header, centered page numbers.</li>
-            <li>Added Project Gutenberg and Standard Ebooks links so first-time visitors have something to test with.</li>
-          </ul>
-        </div>
-      </div>
+      <a href="https://github.com/tchung1970/epub-to-pdf#changelog" target="_blank" rel="noopener">Changelog</a>
     </footer>
   </main>
 
@@ -480,14 +424,6 @@
   const fileSize = document.getElementById("fileSize");
   const removeBtn = document.getElementById("removeBtn");
   const preserveStyle = document.getElementById("preserveStyle");
-  const changelogToggle = document.getElementById("changelogToggle");
-  const changelogPanel = document.getElementById("changelogPanel");
-
-  changelogToggle.addEventListener("click", () => {
-    const open = changelogPanel.hasAttribute("hidden");
-    changelogPanel.toggleAttribute("hidden", !open);
-    changelogToggle.setAttribute("aria-expanded", String(open));
-  });
   const convertBtn = document.getElementById("convertBtn");
   const downloadLink = document.getElementById("downloadLink");
   const resetBtn = document.getElementById("resetBtn");
